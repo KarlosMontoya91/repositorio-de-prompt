@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt Repository</title>
+    <script type="module" crossorigin src="/repositorio-de-prompt/assets/index-BW74K1bv.js"></script>
+    <link rel="stylesheet" crossorigin href="/repositorio-de-prompt/assets/index-DzlC0BTD.css">
+  </head>
+  <body>
+    <!-- App Wrapper to match the mockup's outer background -->
+    <div class="app-wrapper">
+      
+      <!-- Main Glass Container with shadow -->
+      <div class="app-container d-flex">
+        
+        <!-- Sidebar -->
+        <aside class="sidebar d-flex flex-column flex-shrink-0">
+          <div class="sidebar-header">
+            <h5 class="fw-bold text-white mb-0 d-flex align-items-center">
+              <i class="bi bi-robot fs-4 me-2"></i> Prompt Repo
+            </h5>
+          </div>
+          
+          <div class="categories-section flex-grow-1 overflow-auto mt-4">
+            <ul class="nav flex-column gap-1" id="category-list">
+              <!-- Categories injected via JS -->
+            </ul>
+          </div>
+          
+          <div class="mt-auto p-4 border-top border-light border-opacity-10">
+             <button class="btn btn-outline-light btn-sm w-100 d-flex align-items-center justify-content-center" id="add-category-btn" data-bs-toggle="modal" data-bs-target="#categoryModal">
+                <i class="bi bi-plus-lg me-2"></i> Nueva Categoría
+             </button>
+          </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content-wrapper flex-grow-1 d-flex flex-column position-relative">
+          
+          <!-- Header -->
+          <header class="top-header d-flex justify-content-between align-items-center">
+            <div>
+               <!-- Header text/breadcrumbs can go here -->
+               <div class="text-muted small fw-semibold text-uppercase" id="current-category-label">Repositorio</div>
+               <h2 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                 <i class="bi bi-arrow-left fs-4 text-muted"></i> 
+                 <span id="current-category-title">Todos los Prompts</span>
+               </h2>
+            </div>
+            
+            <div class="actions d-flex gap-3 align-items-center">
+              <div class="search-bar position-relative">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="text" id="search-input" class="form-control rounded-pill ps-5 border-0 shadow-sm" placeholder="Buscar..." />
+              </div>
+              <button class="btn btn-primary cta-btn fw-bold rounded-pill px-4 d-flex align-items-center gap-2 shadow-sm" id="add-prompt-btn" data-bs-toggle="modal" data-bs-target="#promptModal">
+                <i class="bi bi-file-earmark-plus"></i> Agregar Prompt
+              </button>
+            </div>
+          </header>
+
+          <!-- Content Area -->
+          <div class="content-area flex-grow-1 overflow-auto mt-4">
+            
+            <div class="d-flex justify-content-between align-items-end mb-3">
+              <p class="text-muted small fw-semibold mb-0" id="prompt-count">0 prompts</p>
+              
+              <div class="d-flex gap-2 category-actions" id="category-actions-container" style="display: none !important;">
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3">Editar Categoría</button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill px-3">Eliminar</button>
+              </div>
+            </div>
+
+            <!-- Prompts Grid -->
+            <div class="row g-4" id="prompts-grid">
+              <!-- Prompts injected via JS -->
+            </div>
+
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div class="modal fade" id="categoryModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-light border-0">
+            <h5 class="modal-title fw-bold" id="categoryModalTitle">Nueva Categoría</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <form id="category-form">
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-secondary">Nombre</label>
+                <input type="text" class="form-control bg-light border-0 py-2" id="category-name" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0 p-4 pt-0">
+            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary cta-btn rounded-pill px-4" id="save-category-btn">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompt Modal -->
+    <div class="modal fade" id="promptModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-light border-0">
+            <h5 class="modal-title fw-bold" id="promptModalTitle">Agregar Prompt</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <form id="prompt-form">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold text-secondary">Título</label>
+                  <input type="text" class="form-control bg-light border-0 py-2" id="prompt-title" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold text-secondary">Categoría</label>
+                  <select class="form-select bg-light border-0 py-2" id="prompt-category">
+                    <!-- Categories injected via JS -->
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold text-secondary">Descripción (Opcional)</label>
+                  <input type="text" class="form-control bg-light border-0 py-2" id="prompt-description">
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold text-secondary">Contenido (Soporta Markdown)</label>
+                  <textarea class="form-control bg-light border-0 py-2" id="prompt-content" rows="6" required></textarea>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold text-secondary">Formato</label>
+                  <input type="text" class="form-control bg-light border-0 py-2" id="prompt-format" placeholder="e.g. 16:9">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold text-secondary">Plataforma</label>
+                  <input type="text" class="form-control bg-light border-0 py-2" id="prompt-platform" placeholder="e.g. Web, LinkedIn">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold text-secondary">Etiquetas (separadas por coma)</label>
+                  <input type="text" class="form-control bg-light border-0 py-2" id="prompt-tags" placeholder="e.g. imagen, UI">
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer border-0 p-4 pt-0">
+            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary cta-btn rounded-pill px-4" id="save-prompt-btn">Guardar Prompt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Template for Prompt Card -->
+    <template id="prompt-card-template">
+      <div class="col-md-6 col-xl-4 prompt-col">
+        <div class="card custom-card border-0 h-100 overflow-hidden shadow-sm">
+          
+          <div class="card-body p-4 d-flex flex-column position-relative">
+            <!-- Colored squircle accent based on mockup -->
+            <div class="card-accent-shape d-flex align-items-center justify-content-center text-white fs-4 fw-bold">
+               <i class="bi bi-file-text"></i>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-start mb-3 position-relative z-1" style="margin-left: 80px;">
+               <div>
+                 <span class="badge rounded-pill bg-light text-secondary border prompt-card-category mb-1">Categoría</span>
+               </div>
+               
+              <div class="dropdown">
+                <button class="btn btn-sm text-muted px-2 py-0" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                  <li><a class="dropdown-item fw-semibold text-secondary action-edit" href="#"><i class="bi bi-pencil me-2"></i> Editar</a></li>
+                  <li><a class="dropdown-item fw-semibold text-secondary action-duplicate" href="#"><i class="bi bi-files me-2"></i> Duplicar</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item fw-semibold text-danger action-delete" href="#"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+                </ul>
+              </div>
+            </div>
+            
+            <h5 class="card-title fw-bold text-dark mt-2 mb-1 prompt-card-title z-1">Prompt Title</h5>
+            <p class="card-text text-muted small mb-3 prompt-card-desc z-1">Description goes here</p>
+            
+            <div class="prompt-content-preview bg-light p-3 rounded-4 mb-3 flex-grow-1 overflow-hidden border">
+              <div class="markdown-body small text-secondary"></div>
+            </div>
+            
+            <div class="d-flex flex-wrap gap-2 mb-3 prompt-card-tags">
+              <!-- Tags injected via JS -->
+            </div>
+
+            <div class="d-flex gap-2 mt-auto pt-3 border-top">
+              <button class="btn btn-light rounded-pill btn-sm flex-grow-1 fw-bold text-secondary action-copy">
+                <i class="bi bi-copy me-1"></i> Copiar
+              </button>
+              <button class="btn btn-light rounded-pill btn-sm text-secondary action-fav px-3">
+                <i class="bi bi-star"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+  </body>
+</html>
