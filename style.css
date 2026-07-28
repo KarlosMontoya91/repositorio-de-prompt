@@ -1,0 +1,186 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+:root {
+  --sidebar-bg: #0c3b4c;
+  --sidebar-active: #ffffff;
+  --sidebar-text: rgba(255, 255, 255, 0.6);
+  --app-bg: #e2eaf2;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+}
+
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+  background-color: var(--app-bg);
+}
+
+.app-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.app-container {
+  height: 100%;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--sidebar-bg);
+  width: 250px;
+  color: white;
+}
+
+.sidebar-header {
+  padding: 2rem 1.5rem 1rem;
+}
+
+.categories-section {
+  padding: 0 1rem;
+}
+
+.nav-category-item {
+  color: var(--sidebar-text);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+}
+
+.nav-category-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.nav-category-item.active {
+  background: white;
+  color: var(--sidebar-bg);
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.category-count {
+  font-size: 0.75rem;
+  background: rgba(255,255,255,0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+}
+
+.nav-category-item.active .category-count {
+  background: rgba(12, 59, 76, 0.1);
+  color: var(--sidebar-bg);
+}
+
+/* Main Content */
+.content-wrapper {
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%);
+}
+
+.top-header {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.search-bar input {
+  width: 300px;
+  background: rgba(255,255,255,0.6) !important;
+  transition: all 0.2s;
+}
+
+.search-bar input:focus {
+  background: white !important;
+  width: 350px;
+  box-shadow: 0 0 0 4px rgba(12, 59, 76, 0.1) !important;
+}
+
+.cta-btn {
+  background-color: var(--sidebar-bg) !important;
+  border-color: var(--sidebar-bg) !important;
+  color: white;
+}
+
+.cta-btn:hover {
+  background-color: #082d3b !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(12, 59, 76, 0.2);
+}
+
+/* Cards */
+.custom-card {
+  border-radius: 1.25rem !important;
+  background: rgba(255,255,255,0.9) !important;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid white !important;
+}
+
+.custom-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1) !important;
+}
+
+.card-accent-shape {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+  z-index: 0;
+  box-shadow: 0 8px 16px -4px rgba(14, 165, 233, 0.3);
+}
+
+.prompt-content-preview {
+  max-height: 100px;
+  background: #f8fafc !important;
+}
+
+/* Modals */
+.modal-content {
+  border-radius: 1.5rem;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+
+/* Markdown reset */
+.markdown-body { font-family: inherit; }
+.markdown-body p:last-child { margin-bottom: 0; }
+.markdown-body pre {
+  background: rgba(0,0,0,0.05);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+}
