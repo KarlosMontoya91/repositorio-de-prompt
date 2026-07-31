@@ -33,8 +33,10 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          # These are public browser credentials. Supabase RLS remains the
+          # security boundary; never place a service_role key here.
+          VITE_SUPABASE_URL: https://dembomaaonxfzgucdply.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_sAK3KK4-Xo2dU8_SOxF4uA_5XX0mBD8
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

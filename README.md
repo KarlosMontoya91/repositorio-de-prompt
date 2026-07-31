@@ -92,17 +92,14 @@ operación mediante RLS.
 
 El workflow `.github/workflows/deploy-pages.yml` construye y publica `main`.
 
-En GitHub configura:
+El proyecto ya está enlazado al proyecto público de Supabase
+`dembomaaonxfzgucdply`. La URL y la clave `sb_publishable_...` forman parte del
+bundle del navegador por diseño; no otorgan permisos administrativos. Las
+políticas RLS del esquema SQL son la frontera de seguridad.
 
-1. `Settings > Pages > Source`: selecciona **GitHub Actions**.
-2. `Settings > Secrets and variables > Actions > Variables`:
-   - `VITE_SUPABASE_URL`
-3. `Settings > Secrets and variables > Actions > Secrets`:
-   - `VITE_SUPABASE_ANON_KEY`
-
-Aunque la clave `anon` es pública, se guarda como secret para mantener una
-configuración consistente. Si no agregas las variables, el sitio se publica en
-modo demostración.
+En GitHub sólo falta ir a `Settings > Pages > Source` y seleccionar
+**GitHub Actions**. Nunca agregues una clave `service_role` al workflow, al
+repositorio ni a una variable que comience por `VITE_`.
 
 ## Seguridad de prompts premium
 
