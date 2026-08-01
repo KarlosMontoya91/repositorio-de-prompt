@@ -1,31 +1,23 @@
 import * as bootstrap from 'bootstrap';
 import { gsap } from 'gsap';
 import { marked } from 'marked';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
 
-// --- State Management ---
-const STORAGE_KEY = 'prompt_repo_data';
-
-const defaultData = {
-  categories: [
-    { id: 'cat-1', name: 'Images' },
-    { id: 'cat-2', name: 'Development' }
-  ],
-  prompts: [
-    {
-      id: 'prompt-1',
-      categoryId: 'cat-1',
-      title: 'Photorealistic Editorial Image',
-      description: 'Creates a 16:9 photorealistic image for editorial purposes.',
-      content: 'Create a photorealistic editorial image 16:9 that addresses the theme: [Insert Theme here].\n\nUse only:\n- people\n- devices\n- real furniture and elements.',
-      format: '16:9',
-      platform: 'Midjourney',
-      tags: ['image', 'editorial'],
-      isFavorite: false,
-      updatedAt: Date.now()
-    }
-  ]
+// --- Firebase Configuration ---
+const firebaseConfig = {
+  apiKey: "AIzaSyBt6xxeoaA1-YB5JFBaml2RrzsdUW3ZjGs",
+  authDomain: "repositorio-prompts-krm.firebaseapp.com",
+  projectId: "repositorio-prompts-krm",
+  storageBucket: "repositorio-prompts-krm.firebasestorage.app",
+  messagingSenderId: "455602675987",
+  appId: "1:455602675987:web:cf6a581223424663013ae6"
 };
 
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// --- State Management ---
 let appState = {
   categories: [],
   prompts: [],
@@ -33,32 +25,20 @@ let appState = {
 };
 
 function loadData() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      appState.categories = parsed.categories || [];
-      appState.prompts = parsed.prompts || [];
-    } catch (e) {
-      console.error('Failed to parse local storage', e);
-      resetData();
-    }
-  } else {
-    resetData();
-  }
-}
+  // Listen for real-time updates on categories
+  onSnapshot(collection(db, "categories"), (snapshot) => {
+    appState.categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderCategories();
+    updateCategoryDropdown();
+    updateHeader();
+  });
 
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    categories: appState.categories,
-    prompts: appState.prompts
-  }));
-}
-
-function resetData() {
-  appState.categories = [...defaultData.categories];
-  appState.prompts = [...defaultData.prompts];
-  saveData();
+  // Listen for real-time updates on prompts
+  onSnapshot(collection(db, "prompts"), (snapshot) => {
+    appState.prompts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderCategories();
+    renderPrompts(DOM.searchInput.value);
+  });
 }
 
 // --- DOM Elements ---
@@ -105,9 +85,6 @@ function init() {
   DOM.promptModal = new bootstrap.Modal(document.getElementById('promptModal'));
   
   bindEvents();
-  renderCategories();
-  renderPrompts();
-  updateCategoryDropdown();
   
   // Entry animation
   gsap.from('.sidebar', { x: -50, opacity: 0, duration: 0.8, ease: 'power3.out' });
@@ -177,7 +154,7 @@ function createCategoryNode(id, name, iconClass) {
     e.preventDefault();
     appState.currentCategoryId = id;
     renderCategories(); // update active state
-    renderPrompts();
+    renderPrompts(DOM.searchInput.value);
     updateHeader();
   });
   
@@ -245,11 +222,11 @@ function renderPrompts(searchQuery = '') {
     
     // Dynamic Accent Color
     const colors = [
-      'linear-gradient(135deg, #f43f5e, #e11d48)', // Pink/Red
-      'linear-gradient(135deg, #10b981, #059669)', // Green
-      'linear-gradient(135deg, #f59e0b, #d97706)', // Orange
-      'linear-gradient(135deg, #3b82f6, #2563eb)', // Blue
-      'linear-gradient(135deg, #8b5cf6, #7c3aed)'  // Purple
+      'linear-gradient(135deg, #f43f5e, #e11d48)',
+      'linear-gradient(135deg, #10b981, #059669)',
+      'linear-gradient(135deg, #f59e0b, #d97706)',
+      'linear-gradient(135deg, #3b82f6, #2563eb)',
+      'linear-gradient(135deg, #8b5cf6, #7c3aed)'
     ];
     const color = colors[index % colors.length];
     clone.querySelector('.card-accent-shape').style.background = color;
@@ -278,7 +255,7 @@ function renderPrompts(searchQuery = '') {
     }
     
     // Bind Actions
-    favBtn.addEventListener('click', () => toggleFavorite(prompt.id));
+    favBtn.addEventListener('click', () => toggleFavorite(prompt.id, prompt.isFavorite));
     clone.querySelector('.action-copy').addEventListener('click', (e) => copyToClipboard(prompt.content, e.target));
     clone.querySelector('.action-edit').addEventListener('click', (e) => {
       e.preventDefault();
@@ -319,24 +296,20 @@ function updateCategoryDropdown() {
 }
 
 // --- Actions ---
-function handleSaveCategory() {
+async function handleSaveCategory() {
   const name = DOM.categoryName.value.trim();
   if (!name) return;
   
-  const newCat = {
-    id: 'cat-' + Date.now(),
-    name: name
-  };
-  
-  appState.categories.push(newCat);
-  saveData();
-  
-  DOM.categoryModal.hide();
-  updateCategoryDropdown();
-  renderCategories();
+  try {
+    await addDoc(collection(db, "categories"), { name: name });
+    DOM.categoryModal.hide();
+  } catch (e) {
+    console.error("Error adding document: ", e);
+    alert("Error al guardar categoría");
+  }
 }
 
-function handleSavePrompt() {
+async function handleSavePrompt() {
   if (!DOM.promptForm.checkValidity()) {
     DOM.promptForm.reportValidity();
     return;
@@ -353,23 +326,21 @@ function handleSavePrompt() {
     updatedAt: Date.now()
   };
   
-  if (currentEditingPromptId) {
-    // Update
-    const idx = appState.prompts.findIndex(p => p.id === currentEditingPromptId);
-    if (idx !== -1) {
-      appState.prompts[idx] = { ...appState.prompts[idx], ...promptData };
+  try {
+    if (currentEditingPromptId) {
+      // Update
+      const promptRef = doc(db, "prompts", currentEditingPromptId);
+      await updateDoc(promptRef, promptData);
+    } else {
+      // Create
+      promptData.isFavorite = false;
+      await addDoc(collection(db, "prompts"), promptData);
     }
-  } else {
-    // Create
-    promptData.id = 'prompt-' + Date.now();
-    promptData.isFavorite = false;
-    appState.prompts.push(promptData);
+    DOM.promptModal.hide();
+  } catch (e) {
+    console.error("Error saving prompt: ", e);
+    alert("Error al guardar prompt");
   }
-  
-  saveData();
-  DOM.promptModal.hide();
-  renderCategories(); // update counts
-  renderPrompts(DOM.searchInput.value);
 }
 
 function openEditPrompt(prompt) {
@@ -387,28 +358,34 @@ function openEditPrompt(prompt) {
   DOM.promptModal.show();
 }
 
-function duplicatePrompt(prompt) {
-  const newPrompt = { ...prompt, id: 'prompt-' + Date.now(), title: prompt.title + ' (Copy)', updatedAt: Date.now() };
-  appState.prompts.push(newPrompt);
-  saveData();
-  renderCategories();
-  renderPrompts(DOM.searchInput.value);
+async function duplicatePrompt(prompt) {
+  const newPrompt = { ...prompt };
+  delete newPrompt.id; // ensure a new ID is generated
+  newPrompt.title = prompt.title + ' (Copy)';
+  newPrompt.updatedAt = Date.now();
+  try {
+    await addDoc(collection(db, "prompts"), newPrompt);
+  } catch (e) {
+    console.error("Error duplicating prompt", e);
+  }
 }
 
-function deletePrompt(id) {
-  appState.prompts = appState.prompts.filter(p => p.id !== id);
-  saveData();
-  renderCategories();
-  renderPrompts(DOM.searchInput.value);
+async function deletePrompt(id) {
+  try {
+    await deleteDoc(doc(db, "prompts", id));
+  } catch (e) {
+    console.error("Error deleting prompt", e);
+  }
 }
 
-function toggleFavorite(id) {
-  const p = appState.prompts.find(p => p.id === id);
-  if (p) {
-    p.isFavorite = !p.isFavorite;
-    saveData();
-    renderCategories();
-    renderPrompts(DOM.searchInput.value);
+async function toggleFavorite(id, currentStatus) {
+  try {
+    const promptRef = doc(db, "prompts", id);
+    await updateDoc(promptRef, {
+      isFavorite: !currentStatus
+    });
+  } catch (e) {
+    console.error("Error toggling favorite", e);
   }
 }
 

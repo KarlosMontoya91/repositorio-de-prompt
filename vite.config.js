@@ -1,5 +1,7 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/repositorio-de-prompt/',
-})
+  plugins: [react()],
+  base: '/repositorio-de-prompt/'
+});
