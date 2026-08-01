@@ -53,9 +53,16 @@ export default function App() {
   const [editingPrompt, setEditingPrompt] = useState(null);
   
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setIsAdmin(currentUser?.email === ADMIN_EMAIL);
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser && currentUser.email !== ADMIN_EMAIL) {
+        alert("Acceso denegado. Solo el administrador puede iniciar sesión.");
+        await signOut(auth);
+        setUser(null);
+        setIsAdmin(false);
+      } else {
+        setUser(currentUser);
+        setIsAdmin(currentUser?.email === ADMIN_EMAIL);
+      }
     });
 
     const unsubCategories = onSnapshot(collection(db, "categories"), (snap) => {
