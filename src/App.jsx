@@ -138,10 +138,10 @@ export default function App() {
           {user ? (
             <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
               <span style={{fontSize: '12px', color: '#94a3b8'}}>{user.email}</span>
-              <button style={styles.btnSecondary} onClick={() => signOut(auth)}>Cerrar Sesión</button>
+              <button style={styles.btnSidebar} onClick={() => signOut(auth)}>Cerrar Sesión</button>
             </div>
           ) : (
-            <button style={styles.btnSecondary} onClick={handleLogin}>Admin Login</button>
+            <button style={styles.btnSidebar} onClick={handleLogin}>Admin Login</button>
           )}
         </div>
       </aside>
@@ -353,14 +353,9 @@ function PromptModal({ prompt, categories, onClose, onSave, onOpenCategoryModal 
         
         <input style={styles.input} placeholder="Título" value={title} onChange={e=>setTitle(e.target.value)} disabled={isUploading} />
         
-        <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-          <select style={{...styles.input, flex: 1}} value={categoryId} onChange={e=>setCategoryId(e.target.value)} disabled={isUploading}>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <button style={styles.btnSecondary} onClick={onOpenCategoryModal} title="Nueva Categoría" disabled={isUploading}>
-            <Plus size={16} />
-          </button>
-        </div>
+        <select style={{...styles.input, width: '100%', paddingRight: '36px'}} value={categoryId} onChange={e=>setCategoryId(e.target.value)} disabled={isUploading}>
+          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
         
         <div style={styles.imageUploadArea}>
           <label style={styles.imageUploadLabel}>
@@ -380,7 +375,7 @@ function PromptModal({ prompt, categories, onClose, onSave, onOpenCategoryModal 
           )}
         </div>
         
-        <input style={styles.input} placeholder="Descripción" value={description} onChange={e=>setDescription(e.target.value)} disabled={isUploading} />
+        <input style={styles.input} placeholder="Instrucciones" value={description} onChange={e=>setDescription(e.target.value)} disabled={isUploading} />
         <textarea style={{...styles.input, height: '150px'}} placeholder="Contenido del prompt" value={content} onChange={e=>setContent(e.target.value)} disabled={isUploading} />
         
         <div style={{display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end'}}>
@@ -562,7 +557,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: 'var(--accent)',
+    backgroundColor: '#0f172a',
     color: '#fff',
     border: 'none',
     padding: '10px 20px',
@@ -574,6 +569,21 @@ const styles = {
     transition: 'opacity 0.2s'
   },
   btnSecondary: {
+    backgroundColor: '#fff',
+    color: '#0f172a',
+    border: '1px solid #e2e8f0',
+    padding: '10px 16px',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontFamily: 'inherit',
+    fontSize: '13px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'background 0.2s'
+  },
+  btnSidebar: {
     backgroundColor: 'rgba(255,255,255,0.1)',
     color: '#fff',
     border: 'none',
