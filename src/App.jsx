@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
-  getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc 
+  getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp
 } from 'firebase/firestore';
 import { 
   getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
 } from 'firebase/auth';
 import { 
   Terminal, Search, Plus, Trash2, Edit2, Copy, Check, 
-  Folder, Image as ImageIcon, Code, Share2, Star, MessageSquare 
+  Folder, Image as ImageIcon, Code, Share2, Star, MessageSquare, Upload, X
 } from 'lucide-react';
+import { uploadImageToCloudinary, getOptimizedCardImageUrl } from './services/cloudinaryService';
 
 // --- Firebase Configuration ---
 const firebaseConfig = {
@@ -251,6 +252,16 @@ function PromptCard({ prompt, category, isAdmin, onEdit, onDelete }) {
         )}
       </div>
       
+      {prompt.imageUrl && (
+        <img 
+          src={getOptimizedCardImageUrl(prompt.imageUrl)} 
+          alt={prompt.imageAlt || `Ejemplo de ${prompt.title}`}
+          style={styles.cardImage}
+          loading="lazy"
+          decoding="async"
+        />
+      )}
+
       <h3 style={styles.cardTitle}>{prompt.title}</h3>
       <p style={styles.cardDesc}>{prompt.description}</p>
       
@@ -273,30 +284,109 @@ function PromptModal({ prompt, categories, onClose, onSave, onOpenCategoryModal 
   const [description, setDescription] = useState(prompt?.description || '');
   const [content, setContent] = useState(prompt?.content || '');
   const [categoryId, setCategoryId] = useState(prompt?.categoryId || (categories[0]?.id || ''));
+  
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(prompt?.imageUrl || '');
+  const [imageAlt, setImageAlt] = useState(prompt?.imageAlt || '');
+  const [isUploading, setIsUploading] = useState(false);
+  const [removeImage, setRemoveImage] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMsg('El archivo excede los 5MB.');
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setRemoveImage(false);
+      setErrorMsg('');
+    }
+  };
+
+  const handleSave = async () => {
+    if (isUploading) return;
+    setIsUploading(true);
+    setErrorMsg('');
+
+    let finalData = { title, description, content, categoryId };
+    
+    try {
+      if (removeImage) {
+        finalData.imageUrl = null;
+        finalData.imagePublicId = null;
+        finalData.imageWidth = null;
+        finalData.imageHeight = null;
+        finalData.imageFormat = null;
+        finalData.imageBytes = null;
+        finalData.imageAlt = null;
+        finalData.imageUpdatedAt = serverTimestamp();
+      } else if (imageFile) {
+        const imgData = await uploadImageToCloudinary(imageFile);
+        finalData.imageUrl = imgData.secure_url;
+        finalData.imagePublicId = imgData.public_id;
+        finalData.imageWidth = imgData.width;
+        finalData.imageHeight = imgData.height;
+        finalData.imageFormat = imgData.format;
+        finalData.imageBytes = imgData.bytes;
+        finalData.imageAlt = imageAlt || `Resultado de ejemplo del prompt: ${title}`;
+        finalData.imageUpdatedAt = serverTimestamp();
+      } else if (prompt?.imageUrl && imageAlt !== prompt.imageAlt) {
+        finalData.imageAlt = imageAlt;
+      }
+
+      await onSave(finalData);
+    } catch (err) {
+      setErrorMsg(err.message);
+      setIsUploading(false);
+    }
+  };
 
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modal}>
         <h2>{prompt ? 'Editar Prompt' : 'Nuevo Prompt'}</h2>
         
-        <input style={styles.input} placeholder="Título" value={title} onChange={e=>setTitle(e.target.value)} />
+        {errorMsg && <div style={styles.errorAlert}>{errorMsg}</div>}
+        
+        <input style={styles.input} placeholder="Título" value={title} onChange={e=>setTitle(e.target.value)} disabled={isUploading} />
         
         <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-          <select style={{...styles.input, flex: 1}} value={categoryId} onChange={e=>setCategoryId(e.target.value)}>
+          <select style={{...styles.input, flex: 1}} value={categoryId} onChange={e=>setCategoryId(e.target.value)} disabled={isUploading}>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <button style={styles.btnSecondary} onClick={onOpenCategoryModal} title="Nueva Categoría">
+          <button style={styles.btnSecondary} onClick={onOpenCategoryModal} title="Nueva Categoría" disabled={isUploading}>
             <Plus size={16} />
           </button>
         </div>
         
-        <input style={styles.input} placeholder="Descripción" value={description} onChange={e=>setDescription(e.target.value)} />
-        <textarea style={{...styles.input, height: '150px'}} placeholder="Contenido del prompt" value={content} onChange={e=>setContent(e.target.value)} />
+        <div style={styles.imageUploadArea}>
+          <label style={styles.imageUploadLabel}>
+            <Upload size={16} /> Imagen de previsualización (Opcional, máx 5MB)
+            <input type="file" accept="image/jpeg, image/png, image/webp, image/avif" style={{display: 'none'}} onChange={handleImageChange} disabled={isUploading} />
+          </label>
+          
+          {imagePreview && !removeImage && (
+            <div style={styles.imagePreviewContainer}>
+              <img src={imagePreview} alt="Preview" style={styles.imagePreview} />
+              <button style={styles.removeImageBtn} onClick={() => { setImageFile(null); setImagePreview(''); setRemoveImage(true); }} title="Quitar imagen"><X size={14} /></button>
+            </div>
+          )}
+          
+          {imagePreview && !removeImage && (
+            <input style={{...styles.input, marginTop: '10px'}} placeholder="Descripción de la imagen (Alt)" value={imageAlt} onChange={e=>setImageAlt(e.target.value)} disabled={isUploading} />
+          )}
+        </div>
+        
+        <input style={styles.input} placeholder="Descripción" value={description} onChange={e=>setDescription(e.target.value)} disabled={isUploading} />
+        <textarea style={{...styles.input, height: '150px'}} placeholder="Contenido del prompt" value={content} onChange={e=>setContent(e.target.value)} disabled={isUploading} />
         
         <div style={{display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end'}}>
-          <button style={styles.btnSecondary} onClick={onClose}>Cancelar</button>
-          <button style={styles.btnPrimary} onClick={() => onSave({ title, description, content, categoryId })}>
-            Guardar
+          <button style={styles.btnSecondary} onClick={onClose} disabled={isUploading}>Cancelar</button>
+          <button style={{...styles.btnPrimary, opacity: isUploading ? 0.7 : 1}} onClick={handleSave} disabled={isUploading}>
+            {isUploading ? 'Guardando...' : 'Guardar'}
           </button>
         </div>
       </div>
@@ -603,6 +693,8 @@ const styles = {
     borderRadius: '24px',
     width: '100%',
     maxWidth: '500px',
+    maxHeight: '90vh',
+    overflowY: 'auto',
     boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
     display: 'flex',
     flexDirection: 'column',
@@ -614,7 +706,9 @@ const styles = {
     border: '1px solid var(--border)',
     fontFamily: 'inherit',
     fontSize: '14px',
-    outline: 'none'
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box'
   },
   colorInput: {
     width: '40px',
@@ -634,5 +728,67 @@ const styles = {
     border: '2px solid transparent',
     cursor: 'pointer',
     transition: 'all 0.2s'
+  },
+  errorAlert: {
+    backgroundColor: '#fee2e2',
+    color: '#b91c1c',
+    padding: '10px',
+    borderRadius: '8px',
+    fontSize: '13px',
+    marginBottom: '10px'
+  },
+  cardImage: {
+    width: '100%',
+    aspectRatio: '16/9',
+    objectFit: 'cover',
+    borderRadius: '12px',
+    marginBottom: '16px',
+    backgroundColor: '#f1f5f9'
+  },
+  imageUploadArea: {
+    border: '1px dashed var(--border)',
+    borderRadius: '12px',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px'
+  },
+  imageUploadLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    color: 'var(--accent)',
+    fontWeight: '500',
+    fontSize: '14px',
+    cursor: 'pointer',
+    justifyContent: 'center',
+    padding: '8px'
+  },
+  imagePreviewContainer: {
+    position: 'relative',
+    width: '100%',
+    borderRadius: '8px',
+    overflow: 'hidden'
+  },
+  imagePreview: {
+    width: '100%',
+    aspectRatio: '16/9',
+    objectFit: 'cover',
+    display: 'block'
+  },
+  removeImageBtn: {
+    position: 'absolute',
+    top: '8px',
+    right: '8px',
+    background: 'rgba(0,0,0,0.6)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '50%',
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer'
   }
 };
