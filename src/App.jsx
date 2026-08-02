@@ -7,8 +7,7 @@ import {
   getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
 } from 'firebase/auth';
 import { 
-  Terminal, Search, Plus, Trash2, Edit2, Copy, Check, 
-  Folder, Image as ImageIcon, Code, Share2, Star, MessageSquare, Upload, X
+  Terminal, Folder, Image as ImageIcon, Code, Share2, Star, MessageSquare, Upload, X, Menu, Search, Plus, Trash2, Edit2, Copy, Check
 } from 'lucide-react';
 import { uploadImageToCloudinary, getOptimizedCardImageUrl } from './services/cloudinaryService';
 
@@ -52,6 +51,7 @@ export default function App() {
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
@@ -98,8 +98,10 @@ export default function App() {
 
   return (
     <div className="app-container">
+      <div className={`modal-overlay-mobile ${isMobileMenuOpen ? 'open' : ''}`} onClick={() => setIsMobileMenuOpen(false)}></div>
+
       {/* Sidebar */}
-      <aside style={styles.sidebar}>
+      <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
         <div style={styles.logoArea}>
           <div style={styles.logoIcon}><Terminal size={28} color="#fff" /></div>
         </div>
@@ -107,7 +109,7 @@ export default function App() {
         <nav style={styles.nav}>
           <div 
             style={{...styles.navItem, ...(activeCategory === 'all' ? styles.navItemActive : {})}}
-            onClick={() => setActiveCategory('all')}
+            onClick={() => { setActiveCategory('all'); setIsMobileMenuOpen(false); }}
           >
             <Folder size={20} />
             <span>Todos los Prompts</span>
@@ -126,7 +128,7 @@ export default function App() {
             <div 
               key={cat.id}
               style={{...styles.navItem, ...(activeCategory === cat.id ? styles.navItemActive : {})}}
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => { setActiveCategory(cat.id); setIsMobileMenuOpen(false); }}
             >
               {getCategoryIcon(cat.icon || 'default', cat.color || '#94a3b8')}
               <span>{cat.name}</span>
@@ -147,22 +149,28 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main style={styles.main}>
-        <header style={styles.header}>
-          <div style={styles.welcomeArea}>
-            <h1 style={styles.welcomeText}>
-              <span className="typing-effect">Hola, humano_</span>
-            </h1>
-            <p style={styles.subtitle}>Explora y copia los mejores prompts para tu día a día.</p>
+      <main style={styles.main} className="main-content-padding">
+        <header style={styles.header} className="header-content">
+          <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+            <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu size={24} />
+            </button>
+            <div style={styles.welcomeArea}>
+              <h1 style={styles.welcomeText}>
+                <span className="typing-effect">Hola, humano_</span>
+              </h1>
+              <p style={styles.subtitle}>Explora y copia los mejores prompts para tu día a día.</p>
+            </div>
           </div>
           
-          <div style={styles.headerActions}>
-            <div style={styles.searchBox}>
+          <div style={styles.headerActions} className="header-actions">
+            <div style={styles.searchBox} className="search-box">
               <Search size={18} color="#94a3b8" />
               <input 
                 type="text" 
                 placeholder="Buscar prompt..." 
                 style={styles.searchInput}
+                className="search-input"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -179,7 +187,7 @@ export default function App() {
         </header>
 
         <div style={styles.contentArea}>
-          <div style={styles.grid}>
+          <div style={styles.grid} className="grid-container">
             {filteredPrompts.map(prompt => (
               <PromptCard 
                 key={prompt.id} 
@@ -435,17 +443,6 @@ function CategoryModal({ onClose, onSave }) {
 
 // --- Styles inline to keep it self-contained and fast for this iteration ---
 const styles = {
-  sidebar: {
-    width: '260px',
-    backgroundColor: 'var(--sidebar-bg)',
-    color: '#fff',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '20px',
-    margin: '16px',
-    borderRadius: '24px',
-    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2)',
-  },
   logoArea: {
     display: 'flex',
     alignItems: 'center',
